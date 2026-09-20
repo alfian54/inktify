@@ -1,5 +1,10 @@
 const express = require("express");
 const cors = require("cors");
+const authRoute = require("./routes/authRoute");
+const storyRoute = require("./routes/storyRoute");
+const chapterRoute = require("./routes/chapterRoute");
+const protect = require("./middleware/authMiddleware");
+
 const mongoose = require("mongoose");
 const path = require("path");
 
@@ -22,10 +27,19 @@ db.once("open", () => {
 });
 
 app.use(cors({ origin: "http://localhost:3000" }));
+app.use(express.json());
 
-app.get("/health", (req, res) => {
+app.use("/api/auth", authRoute);
+app.use("/api/story", storyRoute);
+app.use("/api/chapter", chapterRoute);
+
+app.get("/api/health", (req, res) => {
   res.status(200).json({ status: "ok" });
 });
+
+app.get("/api/protected-test", protect, (req, res) =>
+  res.json({ message: "You are authenticated", user: req.user }),
+);
 
 app.listen(port, () => {
   console.log(`Backend listening on port ${port}`);
