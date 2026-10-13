@@ -7,7 +7,7 @@ export default function Home() {
   const [status, setStatus] = useState("loading");
 
   useEffect(() => {
-    fetch("http://localhost:5000/health")
+    fetch("http://localhost:5000/api/health")
       .then((res) => res.json())
       .then((data) => setStatus(data.status))
       .catch((err) => setStatus("Error: could not reach backend"));
