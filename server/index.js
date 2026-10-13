@@ -37,10 +37,6 @@ app.get("/api/health", (req, res) => {
   res.status(200).json({ status: "ok" });
 });
 
-app.get("/api/protected-test", protect, (req, res) =>
-  res.json({ message: "You are authenticated", user: req.user }),
-);
-
 app.listen(port, () => {
   console.log(`Backend listening on port ${port}`);
 });
