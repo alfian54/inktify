@@ -19,7 +19,7 @@ const signUp = async (req, res) => {
         .status(400)
         .json({ message: "Username or email already exists" });
     }
-    if (password.length < 6) {
+    if (!password || password.length < 6) {
       return res
         .status(400)
         .json({ message: "Password must be at least 6 characters long" });
