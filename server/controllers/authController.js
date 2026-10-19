@@ -34,6 +34,11 @@ const signUp = async (req, res) => {
       user: { id: user._id, username: user.username, email: user.email },
     });
   } catch (error) {
+    if (error.name === "ValidationError") {
+      return res
+        .status(400)
+        .json({ message: Object.values(error.errors)[0].message });
+    }
     console.error("Error during sign-up:", error);
     res.status(500).json({ message: "Internal server error" });
   }
@@ -56,6 +61,11 @@ const login = async (req, res) => {
       user: { id: user._id, username: user.username, email: user.email },
     });
   } catch (error) {
+    if (error.name === "ValidationError") {
+      return res
+        .status(400)
+        .json({ message: Object.values(error.errors)[0].message });
+    }
     console.error("Error during sign-in:", error);
     res.status(500).json({ message: "Internal server error" });
   }
