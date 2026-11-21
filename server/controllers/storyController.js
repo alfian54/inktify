@@ -36,17 +36,36 @@ const getStories = async (req, res) => {
     }
 
     if (search) {
-      filter.title = {
-        $regex: search,
-        $options: "i",
-      };
+      const escaped = search.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+filter.title = { $regex: escaped, $options: "i" };
     }
 
-    const stories = await Story.find(filter).populate(
-      "authorId",
-      "username avatarUrl",
-    );
-    res.status(200).json(stories);
+    const stories = await Story.find(filter)
+      .lean()
+      .populate("authorId", "username avatarUrl");
+
+    // NEW: count published chapters for all these stories in one query
+    const counts = await Chapter.aggregate([
+      {
+        $match: {
+          storyId: { $in: stories.map((s) => s._id) },
+          status: "published",
+        },
+      },
+      { $group: { _id: "$storyId", count: { $sum: 1 } } },
+    ]);
+
+    const countMap = {};
+    counts.forEach((c) => {
+      countMap[c._id.toString()] = c.count;
+    });
+
+    const result = stories.map((s) => ({
+      ...s,
+      chapterCount: countMap[s._id.toString()] || 0,
+    }));
+
+    res.status(200).json(result); // CHANGED: send `result`, not `stories`
   } catch (error) {
     return res.status(500).json({ message: "Internal server error" });
   }
