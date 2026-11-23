@@ -4,7 +4,9 @@
   --background: #fdf8f6;
   --foreground: #1c1b1a;
 }
-
+html {
+  scrollbar-gutter: stable;
+}
 @theme inline {
   --color-background: var(--background);
   --color-cream: #fdf8f6;

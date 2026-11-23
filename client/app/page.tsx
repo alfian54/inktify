@@ -20,21 +20,43 @@ export default function Home() {
   const [error, setError] = useState("");
   const [search, setSearch] = useState("");
   const [genre, setGenre] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [loadedKey, setLoadedKey] = useState<string | null>(null);
+
+  const makeKey = (search: string, genre: string) => `${search}|${genre}`;
+  const refreshing =
+    loadedKey !== null && loadedKey !== makeKey(debouncedSearch, genre);
 
   useEffect(() => {
+    const t = setTimeout(() => setDebouncedSearch(search), 300);
+    return () => clearTimeout(t);
+  }, [search]);
+
+  useEffect(() => {
+    let cancelled = false;
     const params = new URLSearchParams();
-    if (search) params.set("search", search);
+    if (debouncedSearch) params.set("search", debouncedSearch);
     if (genre) params.set("genre", genre);
     const query = params.toString();
 
     api<Story[]>(`/story${query ? `?${query}` : ""}`)
       .then((data) => {
+        if (cancelled) return;
         setStories(data);
         setError("");
+        setLoadedKey(makeKey(debouncedSearch, genre));
       })
-      .catch((err) => setError(err.message))
-      .finally(() => setLoading(false));
-  }, [search, genre]);
+      .catch((err) => {
+        if (!cancelled) setError(err.message);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [debouncedSearch, genre]);
 
   return (
     <main className="mx-auto max-w-6xl px-6 py-8">
@@ -72,7 +94,11 @@ export default function Home() {
       ) : stories.length === 0 ? (
         <p>No stories found.</p>
       ) : (
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <div
+          className={`grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 transition-opacity ${
+            refreshing ? "opacity-60" : ""
+          }`}
+        >
           {stories.map((story) => (
             <StoryCard key={story._id} story={story} />
           ))}
