@@ -1,5 +1,6 @@
 const Story = require("../models/Story");
 const Chapter = require("../models/Chapter");
+const User = require("../models/User");
 const PUBLIC_STATUSES = ["ongoing", "completed"];
 
 const createStory = async (req, res) => {
@@ -37,7 +38,16 @@ const getStories = async (req, res) => {
 
     if (search) {
       const escaped = search.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-filter.title = { $regex: escaped, $options: "i" };
+      const regex = new RegExp(escaped, "i");
+
+      const matchingAuthors = await User.find({ username: regex }).select(
+        "_id",
+      );
+
+      filter.$or = [
+        { title: regex },
+        { authorId: { $in: matchingAuthors.map((u) => u._id) } },
+      ];
     }
 
     const stories = await Story.find(filter)
@@ -67,6 +77,7 @@ filter.title = { $regex: escaped, $options: "i" };
 
     res.status(200).json(result); // CHANGED: send `result`, not `stories`
   } catch (error) {
+    console.error("getStories error:", error);
     return res.status(500).json({ message: "Internal server error" });
   }
 };
