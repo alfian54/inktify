@@ -77,7 +77,6 @@ const getStories = async (req, res) => {
 
     res.status(200).json(result); // CHANGED: send `result`, not `stories`
   } catch (error) {
-    console.error("getStories error:", error);
     return res.status(500).json({ message: "Internal server error" });
   }
 };
