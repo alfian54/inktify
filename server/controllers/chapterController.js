@@ -35,9 +35,9 @@ const getChaptersByStory = async (req, res) => {
     if (!story) {
       return res.status(404).json({ message: "Story not found" });
     }
-    const chapters = await Chapter.find({ storyId, status: "published" }).sort(
-      "order",
-    );
+    const chapters = await Chapter.find({ storyId, status: "published" })
+      .select("-content")
+      .sort("order");
     res.status(200).json(chapters);
   } catch (error) {
     res.status(500).json({ message: "Internal server error" });
