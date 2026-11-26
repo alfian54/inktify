@@ -9,6 +9,8 @@ export type Story = {
   authorId: { _id: string; username: string; avatarUrl?: string };
 };
 
+export type ChapterWithContent = Chapter & { content: string };
+
 export type StoryDetail = Omit<Story, "chapterCount">;
 
 export type Chapter = {
